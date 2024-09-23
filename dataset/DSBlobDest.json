@@ -1,0 +1,36 @@
+{
+	"name": "DSBlobDest",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDatalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"DLDirectory": {
+				"type": "string"
+			},
+			"DLFileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().DLFileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().DLDirectory",
+					"type": "Expression"
+				},
+				"container": "salesforce"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

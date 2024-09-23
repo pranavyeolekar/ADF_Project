@@ -1,0 +1,198 @@
+{
+	"name": "SalesForceDataSync",
+	"properties": {
+		"activities": [
+			{
+				"name": "ReadDLTableMetaData",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureTableSource",
+						"azureTableSourceIgnoreTableNotFound": false
+					},
+					"dataset": {
+						"referenceName": "DSTableConfig",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "LoopTableMetaData",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ReadDLTableMetaData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadDLTableMetaData').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "ExecuteDataSync",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "GenerateSOQLQuery",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "DeleteExistingData",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "SalesForceObjectSync",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"SFObjectName": {
+										"value": "@item().SFObjectName",
+										"type": "Expression"
+									},
+									"SFUrl": {
+										"value": "@variables('SFURL')",
+										"type": "Expression"
+									},
+									"ADLSDir": {
+										"value": "@variables('SFPath')",
+										"type": "Expression"
+									},
+									"SOQLQuery": {
+										"value": "@variables('SOQLQuery')",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "GenerateSOQLQuery",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SOQLQuery",
+								"value": {
+									"value": "@concat('SELECT ', item().SFColumns, ' FROM ', item().SFObjectName, ' WHERE ', item().SFLastModified, ' = ', pipeline().parameters.DaysData)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "DeleteExistingData",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "SetDestPath",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "DSBlobDest",
+									"type": "DatasetReference",
+									"parameters": {
+										"DLDirectory": {
+											"value": "@variables('SFPath')",
+											"type": "Expression"
+										},
+										"DLFileName": "''"
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "SetDestPath",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SFPath",
+								"value": {
+									"value": "@concat(item().SFObjectName, '/', formatDateTime(utcnow(), 'yyyyMMdd'))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"DaysData": {
+				"type": "string",
+				"defaultValue": "TODAY"
+			}
+		},
+		"variables": {
+			"SOQLQuery": {
+				"type": "String"
+			},
+			"SFURL": {
+				"type": "String",
+				"defaultValue": "https://innovation-force-6671--dev1.sandbox.my.salesforce.com/"
+			},
+			"SFPath": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Master Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-09-13T06:16:39Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

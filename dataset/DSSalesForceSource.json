@@ -1,0 +1,33 @@
+{
+	"name": "DSSalesForceSource",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesForceOnCloud",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"URL": {
+					"value": "@dataset().URL",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"URL": {
+				"type": "string"
+			},
+			"SFObject": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SalesforceV2Object",
+		"schema": [],
+		"typeProperties": {
+			"objectApiName": {
+				"value": "@dataset().SFObject",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

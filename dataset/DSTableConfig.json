@@ -1,0 +1,16 @@
+{
+	"name": "DSTableConfig",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeTable",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureTable",
+		"schema": [],
+		"typeProperties": {
+			"tableName": "SalesForceConfigTable"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

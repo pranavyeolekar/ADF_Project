@@ -1,0 +1,9 @@
+{
+	"name": "wBIDataFactorySalesforce",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "aeba85c8-d608-42b6-a4df-bfd1827a6d6a",
+		"tenantId": "e85bdaae-c6a4-4f35-9900-28cdffe607e0"
+	}
+}

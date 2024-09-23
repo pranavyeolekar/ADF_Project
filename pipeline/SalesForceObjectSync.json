@@ -1,0 +1,109 @@
+{
+	"name": "SalesForceObjectSync",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetSalesForceDataToDataLake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SalesforceV2Source",
+						"query": {
+							"value": "@pipeline().parameters.SOQLQuery",
+							"type": "Expression"
+						},
+						"includeDeletedObjects": false
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DSSalesForceSource",
+						"type": "DatasetReference",
+						"parameters": {
+							"URL": {
+								"value": "@pipeline().parameters.SFUrl",
+								"type": "Expression"
+							},
+							"SFObject": {
+								"value": "@pipeline().parameters.SFObjectName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DSBlobDest",
+						"type": "DatasetReference",
+						"parameters": {
+							"DLDirectory": {
+								"value": "@pipeline().parameters.ADLSDir",
+								"type": "Expression"
+							},
+							"DLFileName": {
+								"value": "@concat(pipeline().RunId,'.parquet')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"SFObjectName": {
+				"type": "string"
+			},
+			"SFUrl": {
+				"type": "string"
+			},
+			"ADLSDir": {
+				"type": "string"
+			},
+			"SOQLQuery": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"SOQLQuery": {
+				"type": "String"
+			},
+			"SFPath": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Child Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-09-08T06:04:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
